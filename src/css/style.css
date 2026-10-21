@@ -19,6 +19,10 @@
  *
  * This engine lacks `inset`, `aspect-ratio`, `overflow: clip`, the individual transform
  * properties, `color-mix()`, container queries and `:has()`. Grid, gap, sticky and `clamp()` work.
+ *
+ * Older TVs have older engines: a 2020 set (Tizen 5.5) runs about Chromium 69, which has grid
+ * gap but not flex gap (Chromium 84). So flex rows are spaced with a margin on each item after
+ * the first, and `gap` only appears on grids.
  */
 @font-face {
     font-family: "Manrope";
@@ -788,7 +792,6 @@ html.preview, html.preview body {
     right: var(--edge);
     bottom: 48px;
     display: flex;
-    gap: 40px;
     font-size: 22px;
     color: #a3a8b3;
 }
@@ -798,8 +801,12 @@ html.preview, html.preview body {
 .hint {
     display: flex;
     align-items: center;
-    gap: 12px;
 }
+
+/* Also spaces the viewer's key hints in Photos (.pv-keys). */
+.hint + .hint { margin-left: 40px; }
+
+.hint-key + .hint-label { margin-left: 12px; }
 
 .hint-key {
     border: 1px solid rgba(255, 255, 255, 0.3);
@@ -840,7 +847,6 @@ html.preview, html.preview body {
     top: 420px;
     left: var(--edge);
     display: flex;
-    gap: 36px;
 }
 
 .probe-tile {
@@ -849,6 +855,8 @@ html.preview, html.preview body {
     border-radius: 18px;
     background: linear-gradient(140deg, #d8232a, #8c1419);
 }
+
+.probe-tile + .probe-tile { margin-left: 36px; }
 
 /* The expensive kind: a large blur radius, as used throughout the proposed redesign. */
 .probe-shadow { box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6); }
@@ -927,7 +935,6 @@ html.preview, html.preview body {
 
 .pv-keys {
     display: flex;
-    gap: 40px;
     margin-top: 30px;
     font-size: 22px;
     color: #a3a8b3;
@@ -1005,9 +1012,10 @@ html.preview, html.preview body {
     position: absolute;
     display: flex;
     align-items: baseline;
-    gap: 22px;
     transition: transform 1200ms ease-out;
 }
+
+.ss-date + .ss-time { margin-left: 22px; }
 
 .ss-clock.pos-0 { right: var(--edge); bottom: 96px; }
 .ss-clock.pos-1 { right: var(--edge); top: 96px; }
