@@ -1,5 +1,8 @@
 # Arn0 Launcher
 
+> **This fork** adds a Photos gallery and layout fixes for older (2020) TVs. Where it stands and
+> what is left: [docs/handoff.md](docs/handoff.md).
+
 A quieter home screen for a Samsung Tizen TV: a clock, a row of your apps, a row of your consoles,
 and nothing else.
 
