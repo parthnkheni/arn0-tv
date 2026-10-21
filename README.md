@@ -121,13 +121,15 @@ src/                  everything that goes into the .wgt
   fonts/              Manrope, Inter, Outfit, DM Sans (OFL), bundled so nothing loads from the network
   img/marks/          brand marks (Simple Icons CC0, Custom Brand Icons MIT; see SOURCES.md)
   img/tiles/          marks recoloured per brand (generated at build)
-  img/wallpapers/     1920x1080 wallpapers with the readability scrim baked in (generated)
+  img/wallpapers/     1920x1080 wallpapers with the readability scrim baked in (generated);
+                      full/ holds the same photos uncropped and unscrimmed for Photos
   js/config.js        your apps, consoles, HDMI method, locale, theme
   js/brands.js        tile colours and marks per brand
   js/apps.js          list / filter / launch via tizen.application
   js/inputs.js        HDMI via tizen.systeminfo + tizen.tvwindow
   js/wallpaper.js     wallpaper display and rotation
   js/screensaver.js   idle screen saver: photos, slow zoom, clock
+  js/gallery.js       Photos: thumbnail grid, full-screen viewer and slideshow
   js/appearance.js    clock, date and font settings
   js/prefs.js         settings saved on the TV
   js/ui.js            screens, focus, keys, toast, pop-up menu
@@ -166,7 +168,9 @@ Saved on the TV in `localStorage`. They survive restarts and in-place updates, n
 ### Wallpapers
 
 Photos are cropped to 1920x1080 and darkened (top-left for the clock, bottom for the tiles) at
-build time, so the TV only ever draws one plain JPEG on its own layer. Drop photos in a folder and
+build time, so the TV only ever draws one plain JPEG on its own layer. The same run writes a clean
+copy of each photo to `img/wallpapers/full/` — letterboxed rather than cropped, with no scrim —
+for the Photos viewer. Drop photos in a folder and
 run `node scripts/prepare-wallpapers.mjs <folder>`; friendly names and crop positions for known
 files live in that script. Current photos are from Unsplash; credits appear when you switch with
 Green.
@@ -188,6 +192,21 @@ Only `transform` and `opacity` animate, which the compositor can run without rep
 the rule from the measurements below rather than a separate measurement: the Lab probe times a
 JavaScript repaint loop, and a CSS transition that runs off the main thread would read as a clean
 60 fps there whether or not the panel keeps up, so judge this one by eye on the TV.
+
+### Photos
+
+The **Photos** tile at the end of the apps row opens a grid of the same photos as the wallpapers.
+OK shows one full screen; Left and Right step through them; OK again starts a slideshow (a new
+photo every 10 s) and pauses it; Green makes the current photo the Home background; Back returns
+to the grid, on the photo you were looking at.
+
+The viewer uses each photo's `full` copy, and falls back to the darkened wallpaper for catalogs
+made before those existed (the bundled Unsplash set, until you regenerate it). The caption fades
+out a few seconds after each change so nothing static stays on screen, and the two full-screen
+images are released when the viewer closes.
+
+To use your own photos, put them in a folder and run `node scripts/prepare-wallpapers.mjs <folder>`.
+The file name becomes the title, so `Lake Como 2024.jpg` reads better than `IMG_4521.jpg`.
 
 ### Apps
 

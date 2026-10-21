@@ -1,6 +1,8 @@
 // Turns large photos into TV-ready wallpapers: 1920x1080 cover crop with the readability scrim
 // baked in, saved as JPEG in src/img/wallpapers/, plus the catalog src/js/wallpapers.js.
 // The scrim is part of the image so the TV never composites a gradient over a photo at runtime.
+// Each photo also gets a clean copy in src/img/wallpapers/full/ for the Photos viewer: the whole
+// photo letterboxed into 1920x1080, no crop and no scrim.
 //
 //   node scripts/prepare-wallpapers.mjs ~/Downloads/backgrounds
 import { execFileSync } from 'node:child_process';
@@ -45,13 +47,27 @@ if (!statSync(sourceDir, { throwIfNoEntry: false })?.isDirectory()) {
     process.exit(1);
 }
 const thumbDir = join(outDir, 'thumbs');
+const fullDir = join(outDir, 'full');
 mkdirSync(thumbDir, { recursive: true });
+mkdirSync(fullDir, { recursive: true });
 const tmp = mkdtempSync(join(tmpdir(), 'wallpapers-'));
 
-// 320x180 thumbnails for the Settings picker
+// 384x216 thumbnails, the size of a Photos grid tile; the Settings picker shows them smaller.
 function thumb(jpg, key) {
-    execFileSync('sips', ['-Z', '320', '-s', 'formatOptions', '78', jpg, '--out', join(thumbDir, key + '.jpg')], { stdio: 'ignore' });
+    execFileSync('sips', ['-Z', '384', '-s', 'formatOptions', '78', jpg, '--out', join(thumbDir, key + '.jpg')], { stdio: 'ignore' });
     return 'img/wallpapers/thumbs/' + key + '.jpg';
+}
+
+// Paints a CSS background on a 1920x1080 page with headless Chrome and saves it as a JPEG.
+// Chrome also applies the photo's EXIF rotation, which phone pictures depend on.
+function render(name, background, out) {
+    const html = join(tmp, name + '.html');
+    const png = join(tmp, name + '.png');
+    writeFileSync(html, `<!DOCTYPE html><body style="margin:0;width:1920px;height:1080px;background:${background}"></body>`);
+    execFileSync(CHROME, ['--headless=new', '--disable-gpu', '--hide-scrollbars', '--window-size=1920,1080',
+        '--allow-file-access-from-files', '--virtual-time-budget=5000', `--user-data-dir=${join(tmp, 'profile')}`,
+        `--screenshot=${png}`, 'file://' + html], { stdio: 'ignore' });
+    execFileSync('sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '82', png, '--out', out], { stdio: 'ignore' });
 }
 
 // The plain "Midnight" gradient (img/bg.jpg) is what "Off" shows, so it is not in the catalog.
@@ -60,18 +76,20 @@ const catalog = [];
 for (const file of readdirSync(sourceDir).sort()) {
     if (!/\.(jpe?g|png|webp)$/i.test(file)) continue;
     const info = KNOWN[file] || { key: basename(file, extname(file)).toLowerCase().replace(/[^a-z0-9]+/g, '-').slice(0, 40) };
-    const title = info.title || info.key;
-    const html = join(tmp, info.key + '.html');
-    const png = join(tmp, info.key + '.png');
+    // Unknown files keep their own name as the title, which the Photos viewer shows as the caption.
+    const title = info.title || basename(file, extname(file));
     const src = 'file://' + join(sourceDir, file).split('/').map(encodeURIComponent).join('/');
-    writeFileSync(html, `<!DOCTYPE html><body style="margin:0;width:1920px;height:1080px;background:${SCRIM},` +
-        `url('${src}') ${info.position || 'center'} / cover no-repeat #000"></body>`);
-    execFileSync(CHROME, ['--headless=new', '--disable-gpu', '--hide-scrollbars', '--window-size=1920,1080',
-        '--allow-file-access-from-files', '--virtual-time-budget=5000', `--user-data-dir=${join(tmp, 'profile')}`,
-        `--screenshot=${png}`, 'file://' + html], { stdio: 'ignore' });
+    const crop = `url('${src}') ${info.position || 'center'} / cover no-repeat #000`;
     const out = join(outDir, info.key + '.jpg');
-    execFileSync('sips', ['-s', 'format', 'jpeg', '-s', 'formatOptions', '82', png, '--out', out], { stdio: 'ignore' });
-    catalog.push({ key: info.key, title, file: 'img/wallpapers/' + info.key + '.jpg', thumb: thumb(out, info.key), credit: credit(file) });
+    render(info.key, `${SCRIM},${crop}`, out);
+    render(info.key + '-full', `url('${src}') center / contain no-repeat #000`, join(fullDir, info.key + '.jpg'));
+    // The thumbnail is the Home crop without the scrim, so the Photos grid is not dimmed.
+    const clean = join(tmp, info.key + '-clean.jpg');
+    render(info.key + '-clean', crop, clean);
+    catalog.push({
+        key: info.key, title, file: 'img/wallpapers/' + info.key + '.jpg', full: 'img/wallpapers/full/' + info.key + '.jpg',
+        thumb: thumb(clean, info.key), credit: credit(file)
+    });
     console.log(`${info.key}.jpg  ${(statSync(out).size / 1024).toFixed(0)} KB  ${credit(file)}`);
 }
 rmSync(tmp, { recursive: true, force: true });

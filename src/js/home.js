@@ -106,6 +106,18 @@
         return wrap;
     }
 
+    function photosTile() {
+        var wrap = el('div', 'app');
+        var tile = el('div', 'tile photos-tile');
+        tile.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">' +
+            '<rect x="3" y="4.5" width="18" height="15" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.7"/>' +
+            '<path d="M21 15.5l-4.5-4.5L7 19.5"/></svg>';
+        wrap.appendChild(tile);
+        wrap.appendChild(el('div', 'label', 'Photos'));
+        wrap._item = { kind: 'photos' };
+        return wrap;
+    }
+
     function inputTile(input) {
         var brand = findBrand(input.brand || '') || { bg: '#2a2f3a', fg: '#fff', mark: null };
         var wrap = el('div', 'input');
@@ -171,6 +183,7 @@
         if (!items.length) items = Apps.allSorted(state.apps, false).slice(0, 8);
         items.forEach(function (item) { row.appendChild(appTile(item)); });
         row.appendChild(allAppsTile());
+        if (Wallpaper.list().length) row.appendChild(photosTile());
 
         var row2 = $('inputs-row');
         row2.innerHTML = '';
@@ -413,6 +426,7 @@
             activate: function (item) {
                 if (item.kind === 'app') launchApp(item);
                 else if (item.kind === 'all') UI.show('all');
+                else if (item.kind === 'photos') Gallery.open();
                 else if (item.kind === 'input') openInput(item);
                 else if (item.kind === 'settings') UI.show('settings');
             },

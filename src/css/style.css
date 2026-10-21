@@ -255,11 +255,13 @@ h1, h2 {
     object-fit: contain;
 }
 
-.all-tile {
+.all-tile,
+.photos-tile {
     background: rgba(255, 255, 255, 0.08);
 }
 
-.all-tile svg {
+.all-tile svg,
+.photos-tile svg {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -852,6 +854,86 @@ html.preview, html.preview body {
 .probe-shadow { box-shadow: 0 40px 100px rgba(0, 0, 0, 0.6); }
 
 .probe-focus { box-shadow: 0 0 0 5px var(--ring), 0 40px 100px rgba(0, 0, 0, 0.6); }
+
+/*
+ * Photos: a grid of thumbnails, and a viewer.
+ *
+ * The grid follows All apps: too many tiles for a layer each, so focus changes without
+ * animation. The viewer follows the screen saver: two photo layers crossfaded by opacity, and
+ * one static gradient, the caption's own scrim, which fades with the caption rather than being
+ * repainted.
+ */
+.photo-grid {
+    grid-template-columns: repeat(4, 384px);
+    column-gap: 48px;
+    row-gap: 40px;
+}
+
+.photo img {
+    display: block;
+    width: 384px;
+    height: 216px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.06);
+}
+
+.photo.focused img {
+    transform: scale(1.05);
+    box-shadow: 0 0 0 5px var(--ring);
+}
+
+#photo-view {
+    background: #000;
+}
+
+.pv-photo {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1920px;
+    height: 1080px;
+    opacity: 0;
+    background: center / contain no-repeat;
+    transition: opacity 700ms linear;
+    will-change: opacity;
+}
+
+.pv-caption {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    padding: 180px var(--edge) 56px;
+    background: linear-gradient(180deg, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.62));
+    transition: opacity 600ms ease-out;
+    will-change: opacity;
+}
+
+.pv-caption.pv-quiet {
+    opacity: 0;
+}
+
+.pv-title {
+    font-size: 44px;
+    font-weight: 600;
+    letter-spacing: -0.5px;
+}
+
+.pv-count {
+    margin-top: 10px;
+    font-size: 24px;
+    color: var(--muted);
+}
+
+.pv-keys {
+    display: flex;
+    gap: 40px;
+    margin-top: 30px;
+    font-size: 22px;
+    color: #a3a8b3;
+}
+
+.pv-keys.hidden { display: none; }
 
 /*
  * Screen saver.

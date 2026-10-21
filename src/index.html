@@ -110,6 +110,25 @@
             <div id="screensaver-body" class="settings-body compact"></div>
         </section>
 
+        <section id="photos" class="view page hidden">
+            <header class="page-head">
+                <h1>Photos</h1>
+                <div id="photos-count"></div>
+            </header>
+            <div class="grid-viewport"><div id="photos-grid" class="grid photo-grid"></div></div>
+        </section>
+
+        <!-- Two layers, as in the screen saver: the next photo loads on the hidden one. -->
+        <section id="photo-view" class="view hidden">
+            <div id="pv-photo-a" class="pv-photo"></div>
+            <div id="pv-photo-b" class="pv-photo"></div>
+            <div id="pv-caption" class="pv-caption">
+                <div id="pv-title" class="pv-title"></div>
+                <div id="pv-count" class="pv-count"></div>
+                <div id="pv-keys" class="pv-keys"></div>
+            </div>
+        </section>
+
         <!-- Two photo layers so one can decode and zoom from scratch while the other fades out. -->
         <section id="screensaver" class="view hidden">
             <div id="ss-photo-a" class="ss-photo"></div>
@@ -164,6 +183,7 @@
     <script src="js/ui.js"></script>
     <script src="js/render-probe.js"></script>
     <script src="js/screensaver.js"></script>
+    <script src="js/gallery.js"></script>
     <script src="js/home.js"></script>
     <script src="js/settings.js"></script>
     <script src="js/runner-game.js"></script>
